@@ -3,6 +3,8 @@ import PropTypes from "prop-types";
 import styled from "styled-components";
 import Helmet from "react-helmet";
 import Loader from "Components/Loader";
+import { Link } from "react-router-dom";
+import ImageItem from "Components/ImageItem";
 
 const Container = styled.div`
   height: calc(100vh - 50px);
@@ -43,8 +45,14 @@ const Cover = styled.div`
 `;
 
 const Data = styled.div`
-  width: 70%;
+  width: 50%;
   margin-left: 10px;
+`;
+
+const Info = styled.div`
+  width: 20%;
+  margin-left: 10px;
+  padding-top: 100px;
 `;
 
 const Title = styled.h3`
@@ -65,7 +73,39 @@ const Overview = styled.p`
   font-size: 12px;
   opacity: 0.7;
   line-height: 1.5;
-  width: 50%;
+  width: 80%;
+  margin-bottom: 20px;
+`;
+
+const UnderLineText = styled.span`
+  text-decoration: underline;
+  color: rgba(255, 255, 255, 0.9);
+`;
+
+const Collection = styled.div`
+  width: 150px;
+`;
+
+const Category = styled.div`
+  :not(:last-child) {
+    margin-bottom: 20px;
+  }
+`;
+
+const CategoryTitle = styled.div`
+  font-size: 16px;
+  font-weight: 600;
+  margin-bottom: 10px;
+`;
+
+const Grid = styled.div`
+  display: grid;
+  grid-template-columns: repeat(auto-fill, 150px);
+  grid-gap: 25px;
+`;
+
+const MapItem = styled.div`
+  margin-bottom: 8px;
 `;
 
 const DetailPresenter = ({ result, loading, error }) =>
@@ -120,9 +160,91 @@ const DetailPresenter = ({ result, loading, error }) =>
                     : `${genre.name} / `
                 )}
             </Item>
+            {result.imdb_id ? (
+              <>
+                <Divider>•</Divider>
+                <a href={`https://www.imdb.com/title/${result.imdb_id}/`}>
+                  <span>⭐IMDB⭐</span>
+                </a>
+              </>
+            ) : (
+              ""
+            )}
           </ItemContainer>
           <Overview>{result.overview}</Overview>
+          {result.belongs_to_collection && (
+            <Category>
+              <CategoryTitle>Collection</CategoryTitle>
+              <Collection>
+                <Link to={`/collection/${result.belongs_to_collection.id}`}>
+                  <ImageItem
+                    imageUrl={result.belongs_to_collection.poster_path}
+                    name={result.belongs_to_collection.name}
+                  />
+                </Link>
+              </Collection>
+            </Category>
+          )}
+          {result.seasons && result.seasons.length > 0 && (
+            <Category>
+              <CategoryTitle>Seasons</CategoryTitle>
+              <Grid>
+                {result.seasons.map((season) => (
+                  <ImageItem imageUrl={season.poster_path} name={season.name} />
+                ))}
+              </Grid>
+            </Category>
+          )}
+          {result.created_by && result.created_by.length > 0 && (
+            <Category>
+              <CategoryTitle>Creator</CategoryTitle>
+              <Grid>
+                {result.created_by.map((creator) => (
+                  <ImageItem
+                    imageUrl={creator.profile_path}
+                    name={creator.name}
+                  />
+                ))}
+              </Grid>
+            </Category>
+          )}
         </Data>
+        <Info>
+          {result.videos.results && result.videos.results.length > 0 && (
+            <Category>
+              <CategoryTitle>Preview</CategoryTitle>
+              {result.videos.results.map((video) => (
+                <MapItem>
+                  <a href={`https://youtube.com/watch?v=${video.key}`}>
+                    <UnderLineText>{video.name} ➡</UnderLineText>
+                  </a>
+                </MapItem>
+              ))}
+            </Category>
+          )}
+          {result.production_companies &&
+            result.production_companies.length > 0 && (
+              <Category>
+                <CategoryTitle>Production Company</CategoryTitle>
+                {result.production_companies.map((company, index) => (
+                  <MapItem>
+                    #{index + 1} {company.name}
+                  </MapItem>
+                ))}
+              </Category>
+            )}
+          {result.production_countries &&
+            result.production_countries.length > 0 && (
+              <Category>
+                <CategoryTitle>Production Country</CategoryTitle>
+                {result.production_countries.map((country, index) => (
+                  <MapItem>
+                    #{index + 1} {country.name}
+                  </MapItem>
+                ))}
+              </Category>
+            )}
+        </Info>
       </Content>
     </Container>
   );
